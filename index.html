@@ -630,6 +630,97 @@ Download your teasers & share everywhere!`;
             input.addEventListener('change', saveToLocalStorage);
         });
     });
+function extractAndApplyColors() {
+        const img = document.querySelector('.job-logo');
+        const preview = document.querySelector('.preview');
+        
+        preview.classList.add('loading');
+        img.crossOrigin = 'Anonymous';
+        
+        img.onerror = function() {
+            preview.classList.remove('loading');
+            showToast('Error loading image', 'error');
+        };
+        
+        img.onload = function() {
+            try {
+                const dominantColor = colorThief.getColor(img);
+                preview.style.borderColor = `rgb(${dominantColor.join(',')})`;
+            } catch (error) {
+                console.error('Color extraction failed:', error);
+            }
+            preview.classList.remove('loading');
+        };
+    }
+
+    function extractVideoId(url) {
+        if (!url) return null;
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        if (!match || match[2].length !== 11) {
+            showToast('Invalid YouTube URL format', 'error');
+            return null;
+        }
+        return match[2];
+    }
+
+    function manualTabSwitch(tab) {
+        clearInterval(rotationInterval);
+        switchTab(tab);
+        rotationComplete = true;
+    }
+
+    function switchTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelector(`.tab:nth-child(${tabs.indexOf(tab) + 1})`).classList.add('active');
+        document.getElementById(`${tab}-content`).classList.add('active');
+    }
+
+    function startRotation() {
+        clearInterval(rotationInterval);
+        rotationInterval = setInterval(() => {
+            if (!rotationComplete) {
+                const currentTab = tabs[currentTabIndex];
+                switchTab(currentTab);
+                currentTabIndex = (currentTabIndex + 1) % tabs.length;
+                if (currentTabIndex === 0) rotationComplete = true;
+            } else {
+                clearInterval(rotationInterval);
+            }
+        }, 3000);
+    }
+
+    // Initialize when the page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        prefillForm(); // Always run this first
+        
+        // Form submission
+        document.getElementById('jobForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            updatePreview();
+            showToast('Preview updated', 'success');
+        });
+
+        // Clear button
+        document.getElementById('clearButton').addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear the form?')) {
+                document.getElementById('jobForm').reset();
+                document.getElementById('previewContent').innerHTML = '';
+                localStorage.removeItem('jobTeaserData');
+                showToast('Form cleared', 'normal');
+            }
+        });
+        
+        // Download button
+        document.getElementById('downloadButton').addEventListener('click', downloadTeaser);
+        
+        // Auto-save on input
+        const formInputs = document.querySelectorAll('input, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('change', saveToLocalStorage);
+        });
+    });
 </script>
 </body>
 </html>
