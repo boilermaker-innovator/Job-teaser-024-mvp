@@ -327,164 +327,6 @@
     let rotationInterval;
     let rotationComplete = false;
 
-    // Utility Functions
-    function showToast(message, type = 'normal') {
-        const toast = document.getElementById('toast');
-        toast.textContent = message;
-        toast.className = `toast ${type}`;
-        toast.style.display = 'block';
-        setTimeout(() => {
-            toast.style.display = 'none';
-        }, 3000);
-    }
-
-    function saveToLocalStorage() {
-        const formData = {
-            jobTitle: document.getElementById('jobTitle').value,
-            company: document.getElementById('company').value,
-            logoUrl: document.getElementById('logoUrl').value,
-            jobUrl: document.getElementById('jobUrl').value,
-            videoUrl: document.getElementById('videoUrl').value,
-            about: document.getElementById('about').value,
-            responsibilities: document.getElementById('responsibilities').value,
-            requirements: document.getElementById('requirements').value,
-            benefits: document.getElementById('benefits').value
-        };
-        localStorage.setItem('jobTeaserData', JSON.stringify(formData));
-        showToast('Progress saved', 'success');
-    }
-
-    function loadFromLocalStorage() {
-        const savedData = localStorage.getItem('jobTeaserData');
-        if (savedData) {
-            const formData = JSON.parse(savedData);
-            Object.keys(formData).forEach(key => {
-                const element = document.getElementById(key);
-                if (element) {
-                    element.value = formData[key];
-                }
-            });
-            updatePreview();
-            showToast('Previous data restored', 'success');
-        }
-    }
-
-    // Core Functions
-    function updatePreview() {
-        const title = document.getElementById('jobTitle').value;
-        const company = document.getElementById('company').value;
-        const logoUrl = document.getElementById('logoUrl').value;
-        const jobUrl = document.getElementById('jobUrl').value;
-        const videoUrl = document.getElementById('videoUrl').value;
-        
-        tabs = ['about', 'responsibilities', 'requirements', 'benefits'];
-        if (videoUrl.trim() !== '') {
-            tabs.push('video');
-        }
-        currentTabIndex = 0;
-        rotationComplete = false;
-        
-        let tabsHtml = '<div class="tab-container">';
-        let contentHtml = '';
-        
-        tabs.forEach((tab, index) => {
-            tabsHtml += `<div class="tab${index === 0 ? ' active' : ''}" onclick="manualTabSwitch('${tab}')">${tab.charAt(0).toUpperCase() + tab.slice(1)}</div>`;
-            if (tab === 'video') {
-                const videoId = extractVideoId(videoUrl);
-                contentHtml += `
-                    <div id="${tab}-content" class="tab-content${index === 0 ? ' active' : ''}">
-                        <iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-                    </div>
-                `;
-            } else {
-                contentHtml += `
-                    <div id="${tab}-content" class="tab-content${index === 0 ? ' active' : ''}">
-                        <p>${document.getElementById(tab).value.replace(/\n/g, '<br>')}</p>
-                    </div>
-                `;
-            }
-        });
-        
-        tabsHtml += '</div>';
-        
-        document.getElementById('previewContent').innerHTML = `
-            <div class="job-header">
-                <img src="${logoUrl}" alt="${company} logo" class="job-logo" crossorigin="anonymous">
-                <div>
-                    <h2>${title}</h2>
-                    <h3>${company}</h3>
-                </div>
-            </div>
-            ${tabsHtml}
-            ${contentHtml}
-            <a href="${jobUrl}" class="apply-button" target="_blank">Apply Now</a>
-        `;
-
-        startRotation();
-        extractAndApplyColors();
-        saveToLocalStorage();
-    }
-  function extractAndApplyColors() {
-        const img = document.querySelector('.job-logo');
-        const preview = document.querySelector('.preview');
-        
-        preview.classList.add('loading');
-        img.crossOrigin = 'Anonymous';
-        
-        img.onerror = function() {
-            preview.classList.remove('loading');
-            showToast('Error loading image. Please check the URL.', 'error');
-        };
-        
-        img.onload = function() {
-            try {
-                const dominantColor = colorThief.getColor(img);
-                preview.style.borderColor = `rgb(${dominantColor.join(',')})`;
-            } catch (error) {
-                showToast('Error extracting colors. Using default.', 'error');
-            }
-            preview.classList.remove('loading');
-        };
-    }
-
-    function extractVideoId(url) {
-        if (!url) return null;
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-        const match = url.match(regExp);
-        if (!match || match[2].length !== 11) {
-            showToast('Invalid YouTube URL format', 'error');
-            return null;
-        }
-        return match[2];
-    }
-
-    function manualTabSwitch(tab) {
-        clearInterval(rotationInterval);
-        switchTab(tab);
-        rotationComplete = true;
-    }
-
-    function switchTab(tab) {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        document.querySelector(`.tab:nth-child(${tabs.indexOf(tab) + 1})`).classList.add('active');
-        document.getElementById(`${tab}-content`).classList.add('active');
-    }
-
-    function startRotation() {
-        clearInterval(rotationInterval);
-        rotationInterval = setInterval(() => {
-            if (!rotationComplete) {
-                const currentTab = tabs[currentTabIndex];
-                switchTab(currentTab);
-                currentTabIndex = (currentTabIndex + 1) % tabs.length;
-                if (currentTabIndex === 0) rotationComplete = true;
-            } else {
-                clearInterval(rotationInterval);
-            }
-        }, 3000);
-    }
-
     function prefillForm() {
         document.getElementById('jobTitle').value = 'Create Free Job Teasers Now';
         document.getElementById('company').value = 'For Recruiters & Hiring Managers';
@@ -539,6 +381,162 @@ Features:
 Download your teasers & share everywhere!`;
         
         updatePreview();
+    }
+
+    function saveToLocalStorage() {
+        const formData = {
+            jobTitle: document.getElementById('jobTitle').value,
+            company: document.getElementById('company').value,
+            logoUrl: document.getElementById('logoUrl').value,
+            jobUrl: document.getElementById('jobUrl').value,
+            videoUrl: document.getElementById('videoUrl').value,
+            about: document.getElementById('about').value,
+            responsibilities: document.getElementById('responsibilities').value,
+            requirements: document.getElementById('requirements').value,
+            benefits: document.getElementById('benefits').value
+        };
+        localStorage.setItem('jobTeaserData', JSON.stringify(formData));
+        showToast('Progress saved', 'success');
+    }
+
+    function loadFromLocalStorage() {
+        const savedData = localStorage.getItem('jobTeaserData');
+        if (savedData) {
+            const formData = JSON.parse(savedData);
+            Object.keys(formData).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.value = formData[key];
+                }
+            });
+            updatePreview();
+            showToast('Previous data restored', 'success');
+        }
+    }
+
+    function showToast(message, type = 'normal') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = `toast ${type}`;
+        toast.style.display = 'block';
+        setTimeout(() => {
+            toast.style.display = 'none';
+        }, 3000);
+    }
+
+    function updatePreview() {
+        const title = document.getElementById('jobTitle').value;
+        const company = document.getElementById('company').value;
+        const logoUrl = document.getElementById('logoUrl').value;
+        const jobUrl = document.getElementById('jobUrl').value;
+        const videoUrl = document.getElementById('videoUrl').value;
+        
+        tabs = ['about', 'responsibilities', 'requirements', 'benefits'];
+        if (videoUrl.trim() !== '') {
+            tabs.push('video');
+        }
+        currentTabIndex = 0;
+        rotationComplete = false;
+        
+        let tabsHtml = '<div class="tab-container">';
+        let contentHtml = '';
+        
+        tabs.forEach((tab, index) => {
+            tabsHtml += `<div class="tab${index === 0 ? ' active' : ''}" onclick="manualTabSwitch('${tab}')">${tab.charAt(0).toUpperCase() + tab.slice(1)}</div>`;
+            if (tab === 'video') {
+                const videoId = extractVideoId(videoUrl);
+                contentHtml += `
+                    <div id="${tab}-content" class="tab-content${index === 0 ? ' active' : ''}">
+                        <iframe width="100%" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                    </div>
+                `;
+            } else {
+                contentHtml += `
+                    <div id="${tab}-content" class="tab-content${index === 0 ? ' active' : ''}">
+                        <p>${document.getElementById(tab).value.replace(/\n/g, '<br>')}</p>
+                    </div>
+                `;
+            }
+        });
+        
+        tabsHtml += '</div>';
+        
+        document.getElementById('previewContent').innerHTML = `
+            <div class="job-header">
+                <img src="${logoUrl}" alt="${company} logo" class="job-logo" crossorigin="anonymous">
+                <div>
+                    <h2>${title}</h2>
+                    <h3>${company}</h3>
+                </div>
+            </div>
+            ${tabsHtml}
+            ${contentHtml}
+            <a href="${jobUrl}" class="apply-button" target="_blank">Apply Now</a>
+        `;
+
+        startRotation();
+        extractAndApplyColors();
+    }
+
+    function extractAndApplyColors() {
+        const img = document.querySelector('.job-logo');
+        const preview = document.querySelector('.preview');
+        
+        preview.classList.add('loading');
+        img.crossOrigin = 'Anonymous';
+        
+        img.onerror = function() {
+            preview.classList.remove('loading');
+            showToast('Error loading image', 'error');
+        };
+        
+        img.onload = function() {
+            try {
+                const dominantColor = colorThief.getColor(img);
+                preview.style.borderColor = `rgb(${dominantColor.join(',')})`;
+            } catch (error) {
+                console.error('Color extraction failed:', error);
+            }
+            preview.classList.remove('loading');
+        };
+    }
+
+    function extractVideoId(url) {
+        if (!url) return null;
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        if (!match || match[2].length !== 11) {
+            showToast('Invalid YouTube URL format', 'error');
+            return null;
+        }
+        return match[2];
+    }
+
+    function manualTabSwitch(tab) {
+        clearInterval(rotationInterval);
+        switchTab(tab);
+        rotationComplete = true;
+    }
+
+    function switchTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelector(`.tab:nth-child(${tabs.indexOf(tab) + 1})`).classList.add('active');
+        document.getElementById(`${tab}-content`).classList.add('active');
+    }
+
+    function startRotation() {
+        clearInterval(rotationInterval);
+        rotationInterval = setInterval(() => {
+            if (!rotationComplete) {
+                const currentTab = tabs[currentTabIndex];
+                switchTab(currentTab);
+                currentTabIndex = (currentTabIndex + 1) % tabs.length;
+                if (currentTabIndex === 0) rotationComplete = true;
+            } else {
+                clearInterval(rotationInterval);
+            }
+        }, 3000);
     }
 
     function downloadTeaser() {
@@ -602,14 +600,9 @@ Download your teasers & share everywhere!`;
         }
     }
 
-    // Event Listeners
+    // Initialize when the page loads
     document.addEventListener('DOMContentLoaded', () => {
-        // Check for saved data first
-        if (localStorage.getItem('jobTeaserData')) {
-            loadFromLocalStorage();
-        } else {
-            prefillForm();
-        }
+        prefillForm(); // Always run this first
         
         // Form submission
         document.getElementById('jobForm').addEventListener('submit', (e) => {
